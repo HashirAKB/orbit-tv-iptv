@@ -9,6 +9,7 @@ import android.util.Rational
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.DrawableRes
 import androidx.annotation.OptIn
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -31,12 +32,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.AspectRatio
-import androidx.compose.material.icons.rounded.PictureInPictureAlt
-import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material.icons.rounded.ScreenRotation
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -57,6 +52,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -72,6 +68,7 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import dev.hashir.orbittv.Graph
+import dev.hashir.orbittv.R
 import dev.hashir.orbittv.data.CatalogState
 import dev.hashir.orbittv.data.Channel
 import dev.hashir.orbittv.data.StreamSource
@@ -320,11 +317,11 @@ private fun PlayerScreen(
                 )
                 Spacer(Modifier.height(16.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    ActionChip("Retry", Icons.Rounded.Refresh) {
+                    ActionChip("Retry", R.drawable.ic_refresh) {
                         sourceIndex = 0
                         attempt++
                     }
-                    ActionChip("Back", Icons.AutoMirrored.Rounded.ArrowBack, onBack)
+                    ActionChip("Back", R.drawable.ic_arrow_back, onBack)
                 }
             }
         }
@@ -348,7 +345,7 @@ private fun PlayerScreen(
                         .padding(start = 8.dp, end = 12.dp, top = 12.dp, bottom = 26.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    RoundIcon(Icons.AutoMirrored.Rounded.ArrowBack, "Back", onBack)
+                    RoundIcon(R.drawable.ic_arrow_back, "Back", onBack)
                     Column(Modifier.weight(1f).padding(start = 8.dp)) {
                         Text(
                             channel.name,
@@ -368,12 +365,12 @@ private fun PlayerScreen(
                             maxLines = 1,
                         )
                     }
-                    RoundIcon(Icons.Rounded.AspectRatio, "Change zoom") { fillMode = !fillMode }
+                    RoundIcon(R.drawable.ic_aspect_ratio, "Change zoom") { fillMode = !fillMode }
                     Spacer(Modifier.width(6.dp))
-                    RoundIcon(Icons.Rounded.ScreenRotation, "Rotate", onToggleRotation)
+                    RoundIcon(R.drawable.ic_screen_rotation, "Rotate", onToggleRotation)
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         Spacer(Modifier.width(6.dp))
-                        RoundIcon(Icons.Rounded.PictureInPictureAlt, "Pop out", onPip)
+                        RoundIcon(R.drawable.ic_picture_in_picture_alt, "Pop out", onPip)
                     }
                 }
 
@@ -422,7 +419,7 @@ private fun PlayerScreen(
 
 @Composable
 private fun RoundIcon(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    @DrawableRes icon: Int,
     label: String,
     onClick: () -> Unit,
 ) {
@@ -434,14 +431,14 @@ private fun RoundIcon(
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(icon, contentDescription = label, tint = Color.White, modifier = Modifier.size(19.dp))
+        Icon(painterResource(icon), contentDescription = label, tint = Color.White, modifier = Modifier.size(19.dp))
     }
 }
 
 @Composable
 private fun ActionChip(
     label: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    @DrawableRes icon: Int,
     onClick: () -> Unit,
 ) {
     Row(
@@ -452,7 +449,7 @@ private fun ActionChip(
             .padding(horizontal = 16.dp, vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+        Icon(painterResource(icon), contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
         Spacer(Modifier.width(6.dp))
         Text(label, style = MaterialTheme.typography.labelMedium, color = Color.White)
     }
