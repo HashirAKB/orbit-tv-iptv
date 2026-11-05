@@ -13,8 +13,8 @@ android {
         applicationId = "dev.hashir.orbittv"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.0.1"
     }
 
     buildTypes {
@@ -22,7 +22,9 @@ android {
             isMinifyEnabled = false
         }
         release {
-            isMinifyEnabled = false
+            // R8 strips unused library code; without it the APK is ~3x larger.
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             // Signed with the debug key so CI can produce an installable APK.
             signingConfig = signingConfigs.getByName("debug")
@@ -63,7 +65,6 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.navigation:navigation-compose:2.8.5")
 
     implementation("androidx.media3:media3-exoplayer:1.5.1")

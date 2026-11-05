@@ -9,6 +9,17 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 Nothing yet.
 
+## [1.0.1] - 2026-11-05
+
+### Changed
+
+- **APK size cut by roughly two thirds.** Two causes, both fixed. The app linked
+  `material-icons-extended` whole — 11,400 icon classes, 10.1 MiB of bytecode,
+  54% of all code in the APK — in order to use 15 icons. Those 15 Material Round
+  icons are now vendored as vector drawables (13 KB for the set) and the
+  dependency is gone. Separately, R8 shrinking and resource shrinking are now
+  enabled on release builds; they were switched off.
+
 ## [1.0.0] - 2026-11-05
 
 First public release.
@@ -37,5 +48,6 @@ First public release.
 - Release builds are signed with the Android debug key.
 - No automated tests.
 
-[Unreleased]: https://github.com/HashirAKB/orbit-tv-iptv/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/HashirAKB/orbit-tv-iptv/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/HashirAKB/orbit-tv-iptv/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/HashirAKB/orbit-tv-iptv/releases/tag/v1.0.0
