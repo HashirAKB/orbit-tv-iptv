@@ -8,7 +8,7 @@ standard shape of an Android project.
 ## Shape
 
 ```
-                     ┌──────────────────────────────────┐
+                     ┌──────────────────────────────────────┐
                      │  OrbitApp (Application)              │
                      │  • Coil ImageLoader (+SVG decoder)   │
                      │  • Graph.init()                      │
