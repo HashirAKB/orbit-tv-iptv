@@ -4,18 +4,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -29,9 +26,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.hashir.orbittv.R
 import dev.hashir.orbittv.data.Catalog
 import dev.hashir.orbittv.data.Channel
 import dev.hashir.orbittv.ui.OrbitViewModel
@@ -72,11 +71,11 @@ fun SearchScreen(
                 .fillMaxWidth()
                 .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 8.dp),
             placeholder = { Text("Search 10,000+ channels", style = MaterialTheme.typography.bodyMedium) },
-            leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null, tint = TextSecondary) },
+            leadingIcon = { Icon(painterResource(R.drawable.ic_search), contentDescription = null, tint = TextSecondary) },
             trailingIcon = {
                 if (query.isNotEmpty()) {
                     IconButton(onClick = { vm.setQuery("") }) {
-                        Icon(Icons.Rounded.Close, contentDescription = "Clear", tint = TextSecondary)
+                        Icon(painterResource(R.drawable.ic_close), contentDescription = "Clear", tint = TextSecondary)
                     }
                 }
             },

@@ -5,15 +5,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Explore
-import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -27,8 +23,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -38,6 +34,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import dev.hashir.orbittv.R
 import dev.hashir.orbittv.data.CatalogState
 import dev.hashir.orbittv.data.Channel
 import dev.hashir.orbittv.player.PlayerActivity
@@ -70,11 +67,11 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private enum class Tab(val route: String, val label: String, val icon: ImageVector) {
-    Home("home", "Home", Icons.Rounded.Home),
-    Browse("browse", "Browse", Icons.Rounded.Explore),
-    Search("search", "Search", Icons.Rounded.Search),
-    Favorites("favorites", "Saved", Icons.Rounded.Star),
+private enum class Tab(val route: String, val label: String, @DrawableRes val icon: Int) {
+    Home("home", "Home", R.drawable.ic_home),
+    Browse("browse", "Browse", R.drawable.ic_explore),
+    Search("search", "Search", R.drawable.ic_search),
+    Favorites("favorites", "Saved", R.drawable.ic_star),
 }
 
 @Composable
@@ -119,7 +116,7 @@ fun OrbitRoot(vm: OrbitViewModel = viewModel()) {
                                     }
                                 }
                             },
-                            icon = { Icon(tab.icon, contentDescription = tab.label) },
+                            icon = { Icon(painterResource(tab.icon), contentDescription = tab.label) },
                             label = { Text(tab.label, style = MaterialTheme.typography.labelSmall) },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = Accent,
