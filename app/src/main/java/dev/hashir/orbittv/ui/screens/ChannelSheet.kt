@@ -17,10 +17,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.Star
-import androidx.compose.material.icons.rounded.StarBorder
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -34,11 +30,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import dev.hashir.orbittv.R
 import dev.hashir.orbittv.data.Channel
 import dev.hashir.orbittv.ui.components.Pill
 import dev.hashir.orbittv.ui.components.brandGradient
@@ -126,7 +124,7 @@ fun ChannelSheet(
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        if (isFavorite) Icons.Rounded.Star else Icons.Rounded.StarBorder,
+                        painterResource(if (isFavorite) R.drawable.ic_star else R.drawable.ic_star_border),
                         contentDescription = if (isFavorite) "Remove from favourites" else "Add to favourites",
                         tint = if (isFavorite) Accent else TextSecondary,
                         modifier = Modifier.size(21.dp),
@@ -153,7 +151,7 @@ fun ChannelSheet(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(Icons.Rounded.PlayArrow, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                Icon(painterResource(R.drawable.ic_play_arrow), contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.size(7.dp))
                 Text(
                     if (channel.streams.isEmpty()) "No stream available" else "Watch now",
@@ -188,7 +186,7 @@ fun ChannelSheet(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
-                            Icons.Rounded.PlayArrow,
+                            painterResource(R.drawable.ic_play_arrow),
                             contentDescription = null,
                             tint = TextSecondary,
                             modifier = Modifier.size(16.dp),

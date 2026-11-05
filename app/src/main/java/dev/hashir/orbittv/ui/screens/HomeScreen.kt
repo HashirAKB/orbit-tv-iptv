@@ -1,5 +1,6 @@
 package dev.hashir.orbittv.ui.screens
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,10 +21,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -36,12 +33,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import dev.hashir.orbittv.R
 import dev.hashir.orbittv.data.Catalog
 import dev.hashir.orbittv.data.Channel
 import dev.hashir.orbittv.ui.OrbitViewModel
@@ -230,14 +229,14 @@ private fun TopRow(
         }
 
         IconPill(
-            icon = Icons.Rounded.VisibilityOff,
+            icon = R.drawable.ic_visibility_off,
             active = hideOffline,
             contentDescription = if (hideOffline) "Offline channels hidden" else "Showing all channels",
             onClick = onToggleOffline,
         )
         Spacer(Modifier.size(8.dp))
         IconPill(
-            icon = Icons.Rounded.Refresh,
+            icon = R.drawable.ic_refresh,
             active = refreshing,
             contentDescription = "Refresh channel list",
             onClick = onRefresh,
@@ -247,7 +246,7 @@ private fun TopRow(
 
 @Composable
 private fun IconPill(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    @DrawableRes icon: Int,
     active: Boolean,
     contentDescription: String,
     onClick: () -> Unit,
@@ -261,7 +260,7 @@ private fun IconPill(
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            icon,
+            painterResource(icon),
             contentDescription = contentDescription,
             tint = if (active) Accent else TextSecondary,
             modifier = Modifier.size(19.dp),
@@ -351,7 +350,7 @@ private fun HeroCard(channel: Channel, onPlay: () -> Unit, modifier: Modifier = 
                     .padding(horizontal = 18.dp, vertical = 9.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(Icons.Rounded.PlayArrow, contentDescription = null, tint = Color.Black, modifier = Modifier.size(18.dp))
+                Icon(painterResource(R.drawable.ic_play_arrow), contentDescription = null, tint = Color.Black, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.size(6.dp))
                 Text("Watch", style = MaterialTheme.typography.labelLarge, color = Color.Black)
             }
