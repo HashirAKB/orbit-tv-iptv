@@ -12,16 +12,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.SearchOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import dev.hashir.orbittv.R
 import dev.hashir.orbittv.data.Channel
 import dev.hashir.orbittv.ui.theme.TextSecondary
 import dev.hashir.orbittv.ui.theme.TextTertiary
@@ -65,7 +65,7 @@ fun EmptyState(title: String, body: String, modifier: Modifier = Modifier) {
             modifier = Modifier.padding(40.dp),
         ) {
             Icon(
-                Icons.Rounded.SearchOff,
+                painterResource(R.drawable.ic_search_off),
                 contentDescription = null,
                 tint = TextTertiary,
                 modifier = Modifier.size(38.dp),

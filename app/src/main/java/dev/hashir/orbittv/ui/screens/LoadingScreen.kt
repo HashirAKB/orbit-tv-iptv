@@ -17,8 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.LiveTv
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -31,8 +29,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import dev.hashir.orbittv.R
 import dev.hashir.orbittv.ui.theme.Accent
 import dev.hashir.orbittv.ui.theme.AccentSoft
 import dev.hashir.orbittv.ui.theme.Ink
@@ -78,7 +78,7 @@ fun LoadingScreen(
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    Icons.Rounded.LiveTv,
+                    painterResource(R.drawable.ic_live_tv),
                     contentDescription = null,
                     tint = Color.White,
                     modifier = Modifier.size(34.dp),

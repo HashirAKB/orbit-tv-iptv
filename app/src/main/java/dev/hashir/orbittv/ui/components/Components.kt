@@ -21,8 +21,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -34,12 +32,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import dev.hashir.orbittv.R
 import dev.hashir.orbittv.data.Channel
 import dev.hashir.orbittv.ui.theme.Accent
 import dev.hashir.orbittv.ui.theme.Surface1
@@ -111,7 +111,7 @@ fun ChannelTile(
 
             if (isFavorite) {
                 Icon(
-                    imageVector = Icons.Rounded.Star,
+                    painter = painterResource(R.drawable.ic_star),
                     contentDescription = null,
                     tint = Accent,
                     modifier = Modifier
