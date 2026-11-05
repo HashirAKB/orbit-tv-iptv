@@ -1,0 +1,52 @@
+name: Playback problem
+description: A stream plays elsewhere (VLC, browser) but not in Orbit TV
+labels: [playback]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        This template is for streams that **work in another player but fail in Orbit**. That points
+        at us — usually headers, redirects or a codec. If the stream is simply dead everywhere, it
+        is upstream data: report it at <https://github.com/iptv-org/iptv/issues> instead.
+
+  - type: input
+    id: channel
+    attributes:
+      label: Channel name
+      placeholder: Asianet News
+    validations:
+      required: true
+
+  - type: input
+    id: channel-id
+    attributes:
+      label: Channel ID (if you know it)
+      description: The iptv-org id, e.g. `AsianetNews.in`.
+      placeholder: AsianetNews.in
+
+  - type: dropdown
+    id: works-elsewhere
+    attributes:
+      label: Does it play in VLC or a browser?
+      options:
+        - Yes, plays fine in VLC
+        - Yes, plays fine in a browser
+        - "No - it is dead everywhere (please report upstream instead)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: behaviour
+    attributes:
+      label: What Orbit does
+      description: Spins forever? "Stream unavailable"? Audio but no video? Plays then drops?
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: Device and Android version
+      placeholder: Pixel 6, Android 14
+    validations:
+      required: true

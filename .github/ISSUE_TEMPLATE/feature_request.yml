@@ -1,0 +1,32 @@
+name: Feature request
+description: Suggest something Orbit TV should do
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Orbit TV is deliberately small. Some things are out of scope on purpose — see
+        "Deliberate omissions" in
+        [docs/ARCHITECTURE.md](https://github.com/HashirAKB/orbit-tv-iptv/blob/main/docs/ARCHITECTURE.md).
+        EPG and Chromecast are both on that list; make the case if you think it should change.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do that is awkward or impossible today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you would like instead
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+      description: Including whether an existing feature nearly does it.

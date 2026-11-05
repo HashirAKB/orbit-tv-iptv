@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: A channel is dead, missing, or has the wrong logo
+    url: https://github.com/iptv-org/iptv/issues
+    about: >-
+      Orbit TV ships no channel list — it reads the public iptv-org index. Dead links, missing
+      channels, wrong names, wrong countries and wrong logos are all upstream data and must be
+      reported there. Only report here if a stream plays in VLC but not in Orbit.
+  - name: Question or idea
+    url: https://github.com/HashirAKB/orbit-tv-iptv/discussions
+    about: Open-ended questions and ideas belong in Discussions.

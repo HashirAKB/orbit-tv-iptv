@@ -1,0 +1,54 @@
+name: Bug report
+description: Something in the app behaves incorrectly
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        **Before you file:** if a *channel* is dead or missing, that is upstream iptv-org data and
+        belongs at <https://github.com/iptv-org/iptv/issues>. Use the "Playback problem" template
+        if a stream plays in VLC but not in Orbit.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you saw, and what you expected instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open Browse
+        2. Tap India
+        3. Scroll to the bottom
+        4. ...
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: The release tag you installed, or the commit if you built it yourself.
+      placeholder: v1.0.0
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: Device and Android version
+      placeholder: Pixel 6, Android 14
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logcat (optional)
+      description: Anything from `adb logcat` around the failure. Paste as text, not a screenshot.
+      render: text
