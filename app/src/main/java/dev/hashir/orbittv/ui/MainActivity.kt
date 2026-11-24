@@ -75,7 +75,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        handleVoiceIntent(intent)
+        takePendingVoice()
         setContent {
             OrbitTheme {
                 Box(Modifier.fillMaxSize().background(Ink)) {
@@ -87,12 +87,17 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        handleVoiceIntent(intent)
+        takePendingVoice()
     }
 
-    private fun handleVoiceIntent(intent: Intent?) {
-        val text = intent?.getStringExtra(EXTRA_VOICE_QUERY)?.takeIf { it.isNotBlank() } ?: return
-        intent.removeExtra(EXTRA_VOICE_QUERY)
+    /**
+     * Voice text handed over by our own PlayerActivity. Passed in-process, not
+     * as an intent extra: this activity is exported (launcher), so an extra
+     * would let any app on the device trigger Groq requests on our key.
+     */
+    private fun takePendingVoice() {
+        val text = pendingVoiceQuery?.takeIf { it.isNotBlank() } ?: return
+        pendingVoiceQuery = null
         vm.voiceQuery(text)
     }
 
@@ -115,7 +120,8 @@ class MainActivity : ComponentActivity() {
     }
 
     companion object {
-        const val EXTRA_VOICE_QUERY = "voice_query"
+        /** Set by PlayerActivity just before it brings this activity forward. */
+        @Volatile var pendingVoiceQuery: String? = null
     }
 }
 

@@ -163,9 +163,9 @@ class PlayerActivity : ComponentActivity() {
         val text = voiceText.toString().trim()
         voiceText.clear()
         if (text.isNotEmpty()) {
+            dev.hashir.orbittv.ui.MainActivity.pendingVoiceQuery = text
             startActivity(
                 android.content.Intent(this, dev.hashir.orbittv.ui.MainActivity::class.java)
-                    .putExtra(dev.hashir.orbittv.ui.MainActivity.EXTRA_VOICE_QUERY, text)
                     .addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP or android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP),
             )
             finish()
