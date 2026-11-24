@@ -6,7 +6,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import dev.hashir.orbittv.ui.components.tvClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -117,7 +117,7 @@ fun LoadingScreen(
                         .padding(top = 22.dp)
                         .clip(CircleShape)
                         .background(Accent)
-                        .clickable(onClick = onRetry)
+                        .tvClickable(CircleShape, onClick = onRetry)
                         .padding(horizontal = 26.dp, vertical = 11.dp),
                 ) {
                     Text("Try again", style = MaterialTheme.typography.labelLarge, color = Color.White)

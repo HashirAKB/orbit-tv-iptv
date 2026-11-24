@@ -1,9 +1,15 @@
 package dev.hashir.orbittv.ui.components
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.zIndex
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -80,14 +86,25 @@ fun ChannelTile(
     isOffline: Boolean = false,
 ) {
     val gradient = remember(channel.id) { brandGradient(channel.id) }
-    Column(modifier = modifier.clickable(onClick = onClick)) {
+    val interaction = remember { MutableInteractionSource() }
+    val focused by interaction.collectIsFocusedAsState()
+    val scale by animateFloatAsState(if (focused) 1.07f else 1f, label = "tileScale")
+    Column(
+        modifier = modifier
+            .zIndex(if (focused) 1f else 0f)
+            .graphicsLayer { scaleX = scale; scaleY = scale }
+            .clickable(interactionSource = interaction, indication = null, onClick = onClick),
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(16f / 10f)
                 .clip(RoundedCornerShape(12.dp))
                 .background(gradient)
-                .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.06f)), RoundedCornerShape(12.dp)),
+                .border(
+                    if (focused) BorderStroke(3.dp, FocusRingColor) else BorderStroke(1.dp, Color.White.copy(alpha = 0.06f)),
+                    RoundedCornerShape(12.dp),
+                ),
             contentAlignment = Alignment.Center,
         ) {
             // Shows through whenever the logo is missing or fails to decode.
@@ -152,8 +169,8 @@ fun ChannelTile(
         Text(
             text = channel.name,
             style = MaterialTheme.typography.bodySmall,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onBackground,
+            fontWeight = if (focused) FontWeight.Bold else FontWeight.Medium,
+            color = if (focused) Color.White else MaterialTheme.colorScheme.onBackground,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
@@ -194,7 +211,10 @@ fun SectionHeader(
                 text = action,
                 style = MaterialTheme.typography.labelMedium,
                 color = TextSecondary,
-                modifier = Modifier.clickable(onClick = onAction),
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .tvClickable(CircleShape, onClick = onAction)
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
             )
         }
     }
@@ -240,7 +260,7 @@ fun Pill(
         modifier = modifier
             .clip(CircleShape)
             .background(if (selected) Accent else Surface1)
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+            .then(if (onClick != null) Modifier.tvClickable(CircleShape, onClick = onClick) else Modifier)
             .padding(horizontal = 12.dp, vertical = 7.dp),
     ) {
         Text(

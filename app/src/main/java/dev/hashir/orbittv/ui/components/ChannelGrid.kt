@@ -11,7 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -35,6 +36,7 @@ fun ChannelGrid(
     emptyTitle: String = "Nothing here",
     emptyBody: String = "Try a different filter.",
     contentPadding: PaddingValues = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 28.dp),
+    firstItemFocus: androidx.compose.ui.focus.FocusRequester? = null,
 ) {
     if (channels.isEmpty()) {
         EmptyState(emptyTitle, emptyBody, modifier)
@@ -47,11 +49,16 @@ fun ChannelGrid(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        items(channels, key = { it.id }) { channel ->
+        itemsIndexed(channels, key = { _, it -> it.id }) { index, channel ->
             ChannelTile(
                 channel = channel,
                 onClick = { onChannel(channel) },
                 isFavorite = channel.id in favorites,
+                modifier = if (index == 0 && firstItemFocus != null) {
+                    androidx.compose.ui.Modifier.focusRequester(firstItemFocus)
+                } else {
+                    androidx.compose.ui.Modifier
+                },
             )
         }
     }

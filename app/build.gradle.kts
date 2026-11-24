@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -13,8 +15,20 @@ android {
         applicationId = "dev.hashir.orbittv"
         minSdk = 24
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.0.1"
+        versionCode = 3
+        versionName = "1.1.0"
+
+        // Groq key for natural-language search. Never committed: read from the
+        // gitignored `groq.key` at the repo root, or `groq.apiKey` in
+        // local.properties, or the GROQ_API_KEY env var. Empty = feature off.
+        val localProps = Properties().apply {
+            rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
+        }
+        val groqKey = rootProject.file("groq.key").takeIf { it.exists() }?.readText()?.trim()
+            ?: localProps.getProperty("groq.apiKey")
+            ?: System.getenv("GROQ_API_KEY")
+            ?: ""
+        buildConfigField("String", "GROQ_API_KEY", "\"$groqKey\"")
     }
 
     buildTypes {
@@ -42,6 +56,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     packaging {

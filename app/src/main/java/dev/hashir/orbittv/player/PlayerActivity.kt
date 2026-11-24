@@ -30,7 +30,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.focusable
+import androidx.activity.compose.BackHandler
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.media3.exoplayer.DefaultRenderersFactory
+import dev.hashir.orbittv.ui.components.isTv
+import dev.hashir.orbittv.ui.components.tvClickable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -91,6 +104,7 @@ class PlayerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        onTv = isTv()
 
         val channelId = intent.getStringExtra(EXTRA_CHANNEL_ID).orEmpty()
         val sourceIndex = intent.getIntExtra(EXTRA_SOURCE_INDEX, 0)
@@ -114,6 +128,7 @@ class PlayerActivity : ComponentActivity() {
                     initialChannel = channel,
                     initialSourceIndex = sourceIndex,
                     siblings = siblings,
+                    isTv = onTv,
                     onBack = { finish() },
                     onPip = { enterPipIfPossible() },
                     onToggleRotation = { toggleRotationLock() },
@@ -141,9 +156,42 @@ class PlayerActivity : ComponentActivity() {
         }
     }
 
+    // Voice text typed while watching: collect the burst, then hand it to search.
+    private val voice = dev.hashir.orbittv.ui.VoiceCatcher()
+    private val voiceText = StringBuilder()
+    private val voiceHandoff = Runnable {
+        val text = voiceText.toString().trim()
+        voiceText.clear()
+        if (text.isNotEmpty()) {
+            startActivity(
+                android.content.Intent(this, dev.hashir.orbittv.ui.MainActivity::class.java)
+                    .putExtra(dev.hashir.orbittv.ui.MainActivity.EXTRA_VOICE_QUERY, text)
+                    .addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP or android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            )
+            finish()
+        }
+    }
+
+    override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
+        val text = voice.printable(event)
+        if (text != null) {
+            if (event.action == android.view.KeyEvent.ACTION_DOWN) {
+                if (voice.isNewBurst(event)) voiceText.clear()
+                voiceText.append(text)
+                window.decorView.removeCallbacks(voiceHandoff)
+                window.decorView.postDelayed(voiceHandoff, 800)
+            }
+            return true
+        }
+        return super.dispatchKeyEvent(event)
+    }
+
+    // On a TV, HOME means "leave", not "keep watching in a corner".
+    private var onTv = false
+
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
-        enterPipIfPossible()
+        if (!onTv) enterPipIfPossible()
     }
 
     companion object {
@@ -158,6 +206,7 @@ private fun PlayerScreen(
     initialChannel: Channel,
     initialSourceIndex: Int,
     siblings: List<Channel>,
+    isTv: Boolean,
     onBack: () -> Unit,
     onPip: () -> Unit,
     onToggleRotation: () -> Unit,
@@ -184,7 +233,10 @@ private fun PlayerScreen(
             .setAllowCrossProtocolRedirects(true)
             .setConnectTimeoutMs(15_000)
             .setReadTimeoutMs(20_000)
-        ExoPlayer.Builder(context)
+        // Fall back to another decoder when the hardware one rejects a stream;
+        // the Fire TV's MediaTek decoders are picky about some H.264 profiles.
+        val renderers = DefaultRenderersFactory(context).setEnableDecoderFallback(true)
+        ExoPlayer.Builder(context, renderers)
             .setMediaSourceFactory(DefaultMediaSourceFactory(DefaultDataSource.Factory(context, http)))
             .build()
             .apply { playWhenReady = true }
@@ -214,11 +266,36 @@ private fun PlayerScreen(
         prefs.noteWatched(channel.id)
     }
 
+    // Same handling for a hard error and for a source that never starts.
+    fun failCurrentSource() {
+        val dead = channel.streams.getOrNull(sourceIndex)
+        if (dead != null) scope.launch { health.reportPlaybackFailure(dead.url) }
+        val next = sourceIndex + 1
+        if (next <= channel.streams.lastIndex) {
+            sourceIndex = next
+        } else {
+            buffering = false
+            exoPlayer.stop()
+            fatal = "None of this channel's ${channel.streams.size} source" +
+                (if (channel.streams.size == 1) "" else "s") + " responded."
+        }
+    }
+
+    // Some dead streams never answer and never error; ExoPlayer would keep
+    // retrying for minutes. Give each source 15 s to produce its first frame.
+    var startedKey by remember { mutableStateOf("") }
+    val sourceKey = "${channel.id}#$sourceIndex#$attempt"
+    LaunchedEffect(sourceKey) {
+        delay(15_000)
+        if (startedKey != sourceKey && fatal == null) failCurrentSource()
+    }
+
     DisposableEffect(exoPlayer) {
         val listener = object : Player.Listener {
             override fun onPlaybackStateChanged(state: Int) {
                 buffering = state == Player.STATE_BUFFERING
                 if (state == Player.STATE_READY) {
+                    startedKey = "${channel.id}#$sourceIndex#$attempt"
                     channel.streams.getOrNull(sourceIndex)?.let { s ->
                         if (confirmedAlive.add(s.url)) {
                             scope.launch { health.reportPlaybackSuccess(s.url) }
@@ -228,18 +305,15 @@ private fun PlayerScreen(
             }
 
             override fun onPlayerError(error: PlaybackException) {
-                val dead = channel.streams.getOrNull(sourceIndex)
-                if (dead != null) scope.launch { health.reportPlaybackFailure(dead.url) }
-
-                // Walk to the next untried source before giving up.
-                val next = sourceIndex + 1
-                if (next <= channel.streams.lastIndex) {
-                    sourceIndex = next
-                } else {
-                    buffering = false
-                    fatal = "None of this channel's ${channel.streams.size} source" +
-                        (if (channel.streams.size == 1) "" else "s") + " responded."
+                // Fell behind the live edge (slow start, long buffer): not a dead
+                // stream. Jump back to live instead of failing over.
+                if (error.errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW) {
+                    exoPlayer.seekToDefaultPosition()
+                    exoPlayer.prepare()
+                    return
                 }
+                // Walk to the next untried source before giving up.
+                failCurrentSource()
             }
         }
         exoPlayer.addListener(listener)
@@ -249,11 +323,49 @@ private fun PlayerScreen(
         }
     }
 
+    // Any remote press counts as activity and pushes the auto-hide back.
+    var lastInput by remember { mutableIntStateOf(0) }
+
     // Auto-hide the chrome while playback is healthy.
-    LaunchedEffect(controlsVisible, buffering, fatal) {
+    LaunchedEffect(controlsVisible, buffering, fatal, lastInput) {
         if (controlsVisible && !buffering && fatal == null) {
-            delay(3800)
+            delay(if (isTv) 6000 else 3800)
             controlsVisible = false
+        }
+    }
+
+    // --- Remote control -----------------------------------------------------
+    val rootFocus = remember { FocusRequester() }
+    val zapperFocus = remember { FocusRequester() }
+    val retryFocus = remember { FocusRequester() }
+    var focusZapper by remember { mutableStateOf(false) }
+    val zapList = remember(initialChannel.id) { listOf(initialChannel) + siblings }
+
+    fun zap(step: Int) {
+        if (zapList.size < 2) return
+        val i = zapList.indexOfFirst { it.id == channel.id }.coerceAtLeast(0)
+        channel = zapList[(i + step + zapList.size) % zapList.size]
+        sourceIndex = 0
+        attempt++
+        focusZapper = false
+        controlsVisible = true
+    }
+
+    if (isTv) {
+        // Focus follows the overlay: the strip when it's open, the video otherwise.
+        LaunchedEffect(controlsVisible, focusZapper, fatal) {
+            delay(60)
+            runCatching {
+                when {
+                    fatal != null -> retryFocus.requestFocus()
+                    controlsVisible && focusZapper && siblings.isNotEmpty() -> zapperFocus.requestFocus()
+                    else -> rootFocus.requestFocus()
+                }
+            }
+        }
+        BackHandler(enabled = controlsVisible && fatal == null) {
+            controlsVisible = false
+            focusZapper = false
         }
     }
 
@@ -264,10 +376,43 @@ private fun PlayerScreen(
         Modifier
             .fillMaxSize()
             .background(Color.Black)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-            ) { controlsVisible = !controlsVisible }
+            .onPreviewKeyEvent { e ->
+                lastInput++
+                // CH+/CH- always zap; so do Up/Down on the "stream unavailable" screen.
+                if (isTv && e.type == KeyEventType.KeyDown) {
+                    val up = e.key == Key.ChannelUp || (fatal != null && e.key == Key.DirectionUp)
+                    val down = e.key == Key.ChannelDown || (fatal != null && e.key == Key.DirectionDown)
+                    if (up) { zap(-1); return@onPreviewKeyEvent true }
+                    if (down) { zap(+1); return@onPreviewKeyEvent true }
+                }
+                false
+            }
+            .then(
+                if (isTv) {
+                    Modifier
+                        .focusRequester(rootFocus)
+                        .onKeyEvent { e ->
+                            if (e.type != KeyEventType.KeyDown) return@onKeyEvent false
+                            when (e.key) {
+                                Key.DirectionUp, Key.ChannelUp -> { zap(-1); true }
+                                Key.DirectionDown, Key.ChannelDown -> { zap(+1); true }
+                                Key.DirectionCenter, Key.Enter, Key.NumPadEnter,
+                                Key.DirectionLeft, Key.DirectionRight, Key.Menu -> {
+                                    controlsVisible = true
+                                    focusZapper = true
+                                    true
+                                }
+                                else -> false
+                            }
+                        }
+                        .focusable()
+                } else {
+                    Modifier.clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                    ) { controlsVisible = !controlsVisible }
+                }
+            )
     ) {
         AndroidView(
             factory = { ctx ->
@@ -317,11 +462,11 @@ private fun PlayerScreen(
                 )
                 Spacer(Modifier.height(16.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    ActionChip("Retry", R.drawable.ic_refresh) {
+                    ActionChip("Retry", R.drawable.ic_refresh, Modifier.focusRequester(retryFocus)) {
                         sourceIndex = 0
                         attempt++
                     }
-                    ActionChip("Back", R.drawable.ic_arrow_back, onBack)
+                    ActionChip("Back", R.drawable.ic_arrow_back, onClick = onBack)
                 }
             }
         }
@@ -366,16 +511,18 @@ private fun PlayerScreen(
                         )
                     }
                     RoundIcon(R.drawable.ic_aspect_ratio, "Change zoom") { fillMode = !fillMode }
-                    Spacer(Modifier.width(6.dp))
-                    RoundIcon(R.drawable.ic_screen_rotation, "Rotate", onToggleRotation)
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    if (!isTv) {
+                        Spacer(Modifier.width(6.dp))
+                        RoundIcon(R.drawable.ic_screen_rotation, "Rotate", onToggleRotation)
+                    }
+                    if (!isTv && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         Spacer(Modifier.width(6.dp))
                         RoundIcon(R.drawable.ic_picture_in_picture_alt, "Pop out", onPip)
                     }
                 }
 
                 // Bottom zapper
-                if (siblings.isNotEmpty() && !landscape) {
+                if (siblings.isNotEmpty() && (isTv || !landscape)) {
                     Column(
                         modifier = Modifier
                             .align(Alignment.BottomStart)
@@ -388,7 +535,8 @@ private fun PlayerScreen(
                             .padding(top = 30.dp, bottom = 14.dp),
                     ) {
                         Text(
-                            "More from ${channel.countryName.ifBlank { "here" }}",
+                            "More from ${channel.countryName.ifBlank { "here" }}" +
+                                if (isTv) "   ·   ▲▼ change channel" else "",
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = Color.White.copy(alpha = 0.85f),
@@ -398,15 +546,19 @@ private fun PlayerScreen(
                             contentPadding = PaddingValues(horizontal = 16.dp),
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
-                            items(siblings, key = { it.id }) { other ->
+                            itemsIndexed(siblings, key = { _, it -> it.id }) { index, other ->
                                 ChannelTile(
                                     channel = other,
                                     onClick = {
                                         channel = other
                                         sourceIndex = 0
                                         attempt++
+                                        focusZapper = false
+                                        controlsVisible = false
                                     },
-                                    modifier = Modifier.width(120.dp),
+                                    modifier = Modifier
+                                        .width(120.dp)
+                                        .then(if (index == 0) Modifier.focusRequester(zapperFocus) else Modifier),
                                 )
                             }
                         }
@@ -428,7 +580,7 @@ private fun RoundIcon(
             .size(38.dp)
             .clip(CircleShape)
             .background(Color.White.copy(alpha = 0.14f))
-            .clickable(onClick = onClick),
+            .tvClickable(CircleShape, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Icon(painterResource(icon), contentDescription = label, tint = Color.White, modifier = Modifier.size(19.dp))
@@ -439,13 +591,14 @@ private fun RoundIcon(
 private fun ActionChip(
     label: String,
     @DrawableRes icon: Int,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .clip(CircleShape)
             .background(Color.White.copy(alpha = 0.16f))
-            .clickable(onClick = onClick)
+            .tvClickable(CircleShape, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

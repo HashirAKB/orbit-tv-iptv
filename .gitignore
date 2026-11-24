@@ -9,3 +9,5 @@
 .externalNativeBuild
 .cxx
 local.properties
+# Groq API key for voice / natural-language search
+groq.key

@@ -3,7 +3,8 @@ package dev.hashir.orbittv.ui.screens
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import dev.hashir.orbittv.ui.components.tvClickable
+import dev.hashir.orbittv.ui.components.rememberIsTv
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,6 +44,11 @@ import coil.compose.AsyncImage
 import dev.hashir.orbittv.R
 import dev.hashir.orbittv.data.Catalog
 import dev.hashir.orbittv.data.Channel
+import dev.hashir.orbittv.data.HomePicks
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import kotlinx.coroutines.delay
 import dev.hashir.orbittv.ui.OrbitViewModel
 import dev.hashir.orbittv.ui.components.ChannelRail
 import dev.hashir.orbittv.ui.components.SectionHeader
@@ -89,10 +95,16 @@ fun HomeScreen(
         buildRails(vm, catalog, favorites, recents)
     }
 
+    // Check the hand-picked rows up front so dead feeds drop out before you click them.
+    LaunchedEffect(catalog) {
+        HomePicks.all.forEach { vm.probe(HomePicks.channels(catalog, it.key).take(40), limit = 40) }
+    }
+
     val hero = remember(catalog, healthVersion) {
-        val pool = vm.visible(
-            catalog.byCountry[vm.deviceCountry].orEmpty().ifEmpty { catalog.byCategory["news"].orEmpty() }
-        )
+        // Feature one of the top Malayalam channels, falling back to the old pick.
+        val pool = vm.visible(HomePicks.channels(catalog, HomePicks.MALAYALAM).take(12)).ifEmpty {
+            vm.visible(catalog.byCountry[vm.deviceCountry].orEmpty().ifEmpty { catalog.byCategory["news"].orEmpty() })
+        }
         if (pool.isEmpty()) null else pool[(dayStamp() % pool.size.toLong()).toInt()]
     }
 
@@ -143,7 +155,7 @@ fun HomeScreen(
                         modifier = Modifier
                             .clip(RoundedCornerShape(12.dp))
                             .background(Surface1)
-                            .clickable { onCollection("country", country.code, country.name) }
+                            .tvClickable(RoundedCornerShape(12.dp)) { onCollection("country", country.code, country.name) }
                             .padding(horizontal = 14.dp, vertical = 12.dp),
                     ) {
                         Text(country.flag.ifBlank { "🌐" }, fontSize = 22.sp)
@@ -179,6 +191,12 @@ private fun buildRails(
     recents: List<String>,
 ): List<Rail> {
     val rails = mutableListOf<Rail>()
+
+    // This setup's own picks lead the page: Malayalam, then Nat Geo & co.
+    HomePicks.all.forEach { pick ->
+        val list = vm.visible(HomePicks.channels(catalog, pick.key))
+        if (list.isNotEmpty()) rails += Rail(pick.title, list.take(20), HomePicks.KIND to pick.key)
+    }
 
     val recentChannels = recents.mapNotNull { catalog.byId[it] }
     if (recentChannels.isNotEmpty()) rails += Rail("Continue watching", recentChannels.take(20))
@@ -256,7 +274,7 @@ private fun IconPill(
             .size(38.dp)
             .clip(CircleShape)
             .background(if (active) Accent.copy(alpha = 0.18f) else Surface1)
-            .clickable(onClick = onClick),
+            .tvClickable(CircleShape, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
@@ -271,14 +289,26 @@ private fun IconPill(
 @Composable
 private fun HeroCard(channel: Channel, onPlay: () -> Unit, modifier: Modifier = Modifier) {
     val gradient = remember(channel.id) { brandGradient(channel.id) }
+    // Full-width 16:9 fills a whole TV screen; keep it a banner there.
+    val isTv = rememberIsTv()
+    // On TV start with the featured card selected, so the remote begins in the
+    // content rather than in the side menu.
+    val focus = remember { FocusRequester() }
+    if (isTv) {
+        LaunchedEffect(Unit) {
+            delay(100)
+            runCatching { focus.requestFocus() }
+        }
+    }
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .aspectRatio(16f / 9f)
+            .then(if (isTv) Modifier.height(260.dp) else Modifier.aspectRatio(16f / 9f))
+            .focusRequester(focus)
             .clip(RoundedCornerShape(18.dp))
             .background(gradient)
             .border(1.dp, Color.White.copy(alpha = 0.07f), RoundedCornerShape(18.dp))
-            .clickable(onClick = onPlay),
+            .tvClickable(RoundedCornerShape(18.dp), onClick = onPlay),
     ) {
         Text(
             text = initialsOf(channel.name),
@@ -346,7 +376,7 @@ private fun HeroCard(channel: Channel, onPlay: () -> Unit, modifier: Modifier = 
                 modifier = Modifier
                     .clip(CircleShape)
                     .background(Color.White)
-                    .clickable(onClick = onPlay)
+                    .tvClickable(CircleShape, onClick = onPlay)
                     .padding(horizontal = 18.dp, vertical = 9.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {

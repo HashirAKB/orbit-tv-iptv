@@ -2,7 +2,7 @@ package dev.hashir.orbittv.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import dev.hashir.orbittv.ui.components.tvClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +25,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,6 +62,12 @@ fun ChannelSheet(
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val gradient = remember(channel.id) { brandGradient(channel.id) }
+    // Remote users land on "Watch now", so OK plays straight away.
+    val watchFocus = remember { FocusRequester() }
+    LaunchedEffect(channel.id) {
+        delay(150)
+        runCatching { watchFocus.requestFocus() }
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -120,7 +130,7 @@ fun ChannelSheet(
                         .size(42.dp)
                         .clip(CircleShape)
                         .background(if (isFavorite) Accent.copy(alpha = 0.18f) else Surface2)
-                        .clickable(onClick = onToggleFavorite),
+                        .tvClickable(CircleShape, onClick = onToggleFavorite),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
@@ -146,7 +156,7 @@ fun ChannelSheet(
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(12.dp))
                     .background(Accent)
-                    .clickable(enabled = channel.streams.isNotEmpty()) { onPlay(0) }
+                    .focusRequester(watchFocus).tvClickable(RoundedCornerShape(12.dp), enabled = channel.streams.isNotEmpty()) { onPlay(0) }
                     .padding(vertical = 13.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
@@ -181,7 +191,7 @@ fun ChannelSheet(
                             .padding(bottom = 7.dp)
                             .clip(RoundedCornerShape(10.dp))
                             .background(Surface2)
-                            .clickable { onPlay(index) }
+                            .tvClickable(RoundedCornerShape(10.dp)) { onPlay(index) }
                             .padding(horizontal = 13.dp, vertical = 11.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {

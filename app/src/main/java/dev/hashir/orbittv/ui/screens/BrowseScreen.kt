@@ -1,7 +1,7 @@
 package dev.hashir.orbittv.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import dev.hashir.orbittv.ui.components.tvClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -103,7 +103,7 @@ private fun BrowseCard(emoji: String, title: String, subtitle: String, onClick: 
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
             .background(Surface1)
-            .clickable(onClick = onClick)
+            .tvClickable(RoundedCornerShape(14.dp), onClick = onClick)
             .padding(14.dp),
     ) {
         Column {

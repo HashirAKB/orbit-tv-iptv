@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 320x180dp launcher banner for Fire TV / Android TV home screens. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="320dp"
+    android:height="180dp"
+    android:viewportWidth="320"
+    android:viewportHeight="180">
+
+    <path android:pathData="M0,0 H320 V180 H0 Z" android:fillColor="#0E0E15" />
+
+    <!-- Orbit ring and play mark from the launcher foreground, scaled 2x and centred. -->
+    <group android:translateX="52" android:translateY="-18" android:scaleX="2" android:scaleY="2">
+        <path
+            android:pathData="M31.48,67 A26,26 0 1 1 54,80"
+            android:strokeColor="#E11D48"
+            android:strokeWidth="8"
+            android:strokeLineCap="round" />
+        <path
+            android:pathData="M44.2,40.4 L44.2,67.6 L66.9,54 Z"
+            android:fillColor="#FFFFFF" />
+    </group>
+</vector>
